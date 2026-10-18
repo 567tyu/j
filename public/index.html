@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>M3 Chat</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%236750A4'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3EM3%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- ============ 登录 / 注册 ============ -->
+  <div id="screen-login" class="screen">
+    <div class="login-wrap">
+      <div class="card login-card">
+        <div class="login-logo" aria-hidden="true">M3</div>
+        <h1 class="login-title">M3 Chat</h1>
+        <p class="login-sub">输入昵称, 为你生成专属随机 ID<br>搜索 ID 添加好友, 对方同意后开始聊天</p>
+        <label class="field">
+          <span class="field-label">昵称</span>
+          <input id="input-nick" maxlength="16" placeholder="例如: 小林" autocomplete="off">
+        </label>
+        <button id="btn-enter" class="btn btn-filled">进入聊天</button>
+        <div id="login-error" class="field-error"></div>
+        <div class="login-note">已有 ID? 浏览器保存了会话, 会自动登录; 点「退出」则重新随机生成新 ID</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 主界面 ============ -->
+  <div id="screen-main" class="screen hidden">
+    <!-- 左侧导航 -->
+    <nav class="rail">
+      <div class="rail-logo">M3</div>
+      <button class="rail-tab active" data-tab="chat" title="聊天">
+        <span class="rail-icon" data-icon="chat"></span>
+        <span>聊天</span>
+        <span class="rail-badge hidden" id="badge-tab-chat"></span>
+      </button>
+      <button class="rail-tab" data-tab="contacts" title="联系人">
+        <span class="rail-icon" data-icon="group"></span>
+        <span>联系人</span>
+        <span class="rail-badge hidden" id="badge-tab-contacts"></span>
+      </button>
+      <button class="rail-tab" data-tab="me" title="我">
+        <span class="rail-icon" data-icon="person"></span>
+        <span>我</span>
+      </button>
+      <div class="rail-bottom">
+        <button id="btn-logout" class="icon-btn-lg" title="退出(重新生成 ID)">
+          <span data-icon="logout"></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- 列表区 -->
+    <section class="list-panel">
+      <!-- 聊天 tab -->
+      <div class="tab-page" data-page="chat">
+        <div class="panel-header"><h1>聊天</h1></div>
+        <ul id="chat-list" class="list"></ul>
+        <div id="chat-list-empty" class="list-empty">还没有好友<br>去「联系人」里搜索 ID 添加吧</div>
+      </div>
+
+      <!-- 联系人 tab -->
+      <div class="tab-page hidden" data-page="contacts">
+        <div class="panel-header"><h1>联系人</h1></div>
+        <div class="search-box">
+          <span data-icon="search" class="search-icon"></span>
+          <input id="search-input" placeholder="搜索 ID 或昵称" autocomplete="off">
+        </div>
+        <ul id="search-results" class="list hidden"></ul>
+        <div id="contacts-body">
+          <div id="req-incoming" class="section hidden">
+            <div class="section-title">好友申请 <span class="badge" id="badge-incoming"></span></div>
+            <ul id="incoming-list" class="list"></ul>
+          </div>
+          <div id="req-outgoing" class="section hidden">
+            <div class="section-title">我发出的申请</div>
+            <ul id="outgoing-list" class="list"></ul>
+          </div>
+          <div class="section">
+            <div class="section-title">我的好友 <span class="muted" id="friend-count"></span></div>
+            <ul id="friend-list" class="list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 我 tab -->
+      <div class="tab-page hidden" data-page="me">
+        <div class="panel-header"><h1>我</h1></div>
+        <div class="card profile-card">
+          <div class="avatar avatar-xl" id="me-avatar"></div>
+          <div class="profile-meta">
+            <div class="profile-name" id="me-name"></div>
+            <div class="profile-sub">我的 ID</div>
+            <div class="profile-id-row">
+              <code id="me-id"></code>
+              <button id="btn-copy-id" class="icon-btn" title="复制 ID"><span data-icon="copy"></span></button>
+            </div>
+          </div>
+        </div>
+        <div class="card me-tips">
+          <div class="tips-title">如何加好友</div>
+          <ol class="tips-list">
+            <li>把你的 ID 发给对方</li>
+            <li>对方在「联系人」搜索框输入你的 ID</li>
+            <li>你收到申请后点击「同意」</li>
+            <li>双方即可开始聊天</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 聊天区 -->
+    <section class="chat-panel">
+      <div id="chat-empty" class="chat-empty">
+        <div class="chat-empty-logo">M3</div>
+        <p>选择一个会话开始聊天</p>
+      </div>
+      <div id="chat-view" class="chat-view hidden">
+        <header class="chat-header">
+          <button id="btn-back" class="icon-btn back hidden" title="返回"><span data-icon="back"></span></button>
+          <div class="avatar" id="chat-peer-avatar"></div>
+          <div class="chat-peer-info">
+            <div id="chat-peer-name"></div>
+            <div id="chat-peer-sub" class="sub"></div>
+          </div>
+          <button id="btn-peer-card" class="icon-btn" title="好友资料"><span data-icon="person"></span></button>
+        </header>
+        <div id="messages" class="messages"></div>
+        <div class="composer">
+          <button id="btn-emoji" class="icon-btn" title="表情"><span data-icon="smile"></span></button>
+          <input id="msg-input" placeholder="消息  Text" autocomplete="off">
+          <button id="btn-send" class="send-btn" title="发送"><span data-icon="send"></span></button>
+        </div>
+        <div id="emoji-row" class="emoji-row hidden"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 用户卡片弹窗 ============ -->
+  <div id="modal-user" class="modal hidden">
+    <div class="modal-card card">
+      <button id="modal-close" class="icon-btn modal-close" title="关闭"><span data-icon="close"></span></button>
+      <div class="avatar avatar-xl" id="m-avatar"></div>
+      <div class="profile-name" id="m-name"></div>
+      <div class="profile-sub">ID: <code id="m-id"></code></div>
+      <div class="profile-status" id="m-status"></div>
+      <div class="modal-actions" id="m-actions"></div>
+      <div id="m-request-box" class="request-box hidden">
+        <input id="m-note" maxlength="64" placeholder="添加好友申请(选填)">
+        <button id="m-request-send" class="btn btn-filled btn-sm">发送申请</button>
+      </div>
+      <div id="m-notice" class="m-notice hidden"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
